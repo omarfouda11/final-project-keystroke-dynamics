@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <title>Enroll</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f2f2f2;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background-color: #333;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            padding: 14px 16px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .navbar a:hover,
+        .navbar a.active {
+            color: #4CAF50;
+        }
+
+        .content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 0 30px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            text-transform: uppercase;
+        }
+
+        form {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            font-size: 16px;
+            color: #333;
+            text-align: left;
+        }
+
+        input[type="text"],
+        input[type="email"] {
+            display: block;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        input[type="submit"] {
+            display: block;
+            width: 100%;
+            padding: 12px 25px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #3e8e41;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>	
+  </head> 
+<body>
+    <div class="container">
+      <h1>Enroll</h1>
+      <form method="POST" action="{{ url_for('enroll') }}" id="enrollmentForm">
+        {{ form.csrf_token }}
+        {{ form.hidden_tag() }}
+		{{ form.name.label }} {{ form.name(class='form-control', required=True) }}
+		{{ form.email.label }} {{ form.email(class='form-control', required=True) }}
+		{{ form.credit_card_number.label }} {{ form.credit_card_number(class='form-control', required=True) }}
+		{{ form.phone.label }} {{ form.phone(class='form-control', required=True) }}
+		{{ form.typing_test.label }} {{ form.typing_test(class='form-control', id='typingTest', required=True) }}
+
+        <input type="hidden" name="typing_key_press_times" id="typingKeyPressTimes">
+        <input type="hidden" name="typing_key_release_times" id="typingKeyReleaseTimes">
+        <input type="hidden" name="typing_digraph_latencies" id="typingDigraphLatencies">
+        <input type="hidden" name="typing_start_time" id="typing_start_time">
+        <input type="hidden" name="typing_end_time" id="typing_end_time">
+        {{ form.submit(class='btn btn-primary') }}
+      </form>
+	  
+	<script>
+	  const typingTest = document.getElementById('typingTest');
+	  const typingKeyPressTimes = document.getElementById('typingKeyPressTimes');
+	  const typingKeyReleaseTimes = document.getElementById('typingKeyReleaseTimes');
+	  const typingDigraphLatencies = document.getElementById('typingDigraphLatencies');
+	  const typingStartTime = document.getElementById('typing_start_time');
+	  const typingEndTime = document.getElementById('typing_end_time');
+
+	  let prevKeyUpTime = null;
+	  let keyPressTimes = [];
+	  let keyReleaseTimes = [];
+	  let digraphLatencies = [];
+	  let startTime; // Declare startTime variable
+
+	  typingTest.addEventListener('focus', (event) => {
+		startTime = new Date().getTime();
+		typingStartTime.value = startTime;
+	  });
+
+	  typingTest.addEventListener('keydown', (event) => {
+		const key = event.key;
+		const time = new Date().getTime();
+
+		keyPressTimes.push({ key_code: event.keyCode, time: time });
+		typingKeyPressTimes.value = JSON.stringify(keyPressTimes);
+	  });
+
+	  typingTest.addEventListener('keyup', (event) => {
+		const key = event.key;
+		const time = new Date().getTime();
+
+		keyReleaseTimes.push({ key_code: event.keyCode, time: time });
+		typingKeyReleaseTimes.value = JSON.stringify(keyReleaseTimes);
+
+		if (prevKeyUpTime !== null) {
+		  const latency = time - prevKeyUpTime;
+		  digraphLatencies.push({ keys: keyPressTimes.slice(-2).map(k => k.key).join(''), latency: latency });
+		  typingDigraphLatencies.value = JSON.stringify(digraphLatencies);
+		}
+		prevKeyUpTime = time;
+		typingEndTime.value = new Date().getTime();
+	  });
+
+	  document.getElementById('enrollmentForm').addEventListener('submit', (event) => {
+		// The hidden fields are already updated, so no need to update them here again
+	  });
+	</script>
+    </div>
+  </body>
+
+</html>
