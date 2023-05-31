@@ -263,7 +263,7 @@ def is_typing_pattern_different(dwell_time, user_dwell_time, digraph_latencies, 
     
     weighted_score = sum(normalized_diff * weight for normalized_diff, weight in zip(normalized_differences, weights))
     print(weighted_score)
-    return weighted_score > 3
+    return weighted_score > 4
 
 def process_transaction(user,form,t,d):
     typed_sentence = form.sentence.data
@@ -278,7 +278,7 @@ def process_transaction(user,form,t,d):
     dwell_time = calculate_dwell_time(t,d)
     digraph_latencies = process_digraph_latencies(typing_digraph_latencies)
     user_digraph_latencies = process_digraph_latencies(user.digraph_latencies)
-    threshold = 0.5
+    threshold = 2
     if is_typing_pattern_different(dwell_time, user.dwell_time, digraph_latencies, user_digraph_latencies, typing_speed, user.typing_speed, typing_errors, user.typing_errors):
         return {"result": False, "message": "Transaction detected as fraud"}
     else:
